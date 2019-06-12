@@ -1,0 +1,67 @@
+#
+# ReplicaSet (RS) was the older way of doing replicas.
+# With RS, we can now have "selectors" so it can look for pods that it itself did not create.
+# Assume 3 pods were alreayd running for redis, and then we create this RS.
+# In that case, RS won't spin up 3 new pods since it will see 3 are already running.
+# So then why do we need the template section for our pod?
+# Its because if we wanted more than 3, RS needs to know how to create new pods.
+#
+
+apiVersion: apps/v1
+
+kind: ReplicaSet
+
+metadata:
+  name: redis-rs
+  labels:
+    app: redis
+
+spec:
+  # Pod template so that RS knows how to spin up new pods when needed
+  template:
+    metadata:
+      name: redis-pod
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis-container
+          image: redis
+  # Number of replicas we want
+  replicas: 3
+  # Select the pod using labels that need replication
+  selector:
+    matchLabels:
+      app: redis
+  
+#
+# kubectl apply -f 04-replicaset.yml 
+#     replicaset.apps/redis-rc created
+#
+# kubectl get replicaset
+#     NAME       DESIRED   CURRENT   READY   AGE
+#     redis-rs   3         3         3       11s
+#
+# kubectl get pods
+#     NAME             READY   STATUS    RESTARTS   AGE
+#     redis-rs-9r6h2   1/1     Running   0          72s
+#     redis-rs-bgvqt   1/1     Running   0          72s
+#     redis-rs-vs85j   1/1     Running   0          72s
+# 
+
+#
+# To scale, we have 3 options:
+#
+# 1. Update the yml file and apply the change using "replace"
+# kubectl apply -f 04-replicaset.yml 
+# 
+# OR
+#
+# 2. Update dyamically using yml file (this won't change the "replicas" count in actual yml file)
+# kubectl scale --replicas=6 -f 04-replicaset.yml
+#
+# OR
+#
+# 3. Update dyamically using replicaset name
+# kubectl scale --replicas=6 replicaset redis-rs
+#

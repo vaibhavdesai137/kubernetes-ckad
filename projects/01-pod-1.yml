@@ -1,0 +1,26 @@
+apiVersion: v1
+
+kind: Pod
+
+metadata:
+  name: nginx-pod
+  labels:
+    app: nginx
+    env: prod
+
+spec:
+  containers:
+    - name: nginx-container
+      image: nginx
+
+#
+# $ kubectl create -f nginx-pod.yml 
+#    pod/nginx-pod created
+#
+# $ kubectl get pods
+#    NAME        READY   STATUS              RESTARTS   AGE
+#    nginx-pod   0/1     ContainerCreating   0          7s
+# $ kubectl get pods
+#    NAME        READY   STATUS    RESTARTS   AGE
+#    nginx-pod   1/1     Running   0          78s
+#

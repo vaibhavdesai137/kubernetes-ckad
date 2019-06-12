@@ -1,0 +1,44 @@
+
+#
+# ------------------------------
+# Create pods without yml files
+# ------------------------------
+#
+# $ kubectl run nginx --generator=run-pod/v1 --image nginx
+#       pod/nginx created
+# 
+# $ kubectl run redis --generator=run-pod/v1 --image redis:foo
+#       pod/redis created
+# 
+# $ kubectl get pods
+#       NAME    READY   STATUS         RESTARTS   AGE
+#       nginx   1/1     Running        0          8s
+#       redis   0/1     ErrImagePull   0          4s
+# 
+
+#
+# ---------------------------------------
+# Create pod yml files from running pods
+# ---------------------------------------
+#
+# $ kubectl get pod nginx -o yaml > nginx-pod-definition.yaml
+#
+# $ cat nginx-pod-definition.yaml
+#       apiVersion: v1
+#       kind: Pod
+#       metadata:
+#           labels:
+#               run: nginx
+#           ...
+#           ...
+#       spec:
+#           containers:
+#               - image: nginx
+#                 imagePullPolicy: Always
+#                 name: nginx
+#                 ...
+#                 ...
+#       status:
+#           ...
+#           ...
+#

@@ -1,0 +1,43 @@
+#
+# ReplicationController (RC) was the older way of doing replicas.
+# RC did not have a way to provide the "selectors".
+# Going forward, use ReplicaSet for everything since it does everything that RC does and some more.
+#
+
+apiVersion: v1
+
+kind: ReplicationController
+
+metadata:
+  name: redis-rc
+  labels:
+    app: redis
+
+spec:
+  # Pod template so that RC knows how to spin up new pods when needed
+  template:
+    metadata:
+      name: redis-pod
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis-container
+          image: redis
+  # Number of replicas we want
+  replicas: 3
+  
+#
+# kubectl apply -f 03-replicationcontroller.yml 
+#     replicationcontroller/redis-rc created
+#
+# kubectl get replicationcontroller
+#     NAME       DESIRED   CURRENT   READY   AGE
+#     redis-rc   3         3         3       10s
+#
+# kubectl get pods
+#     NAME             READY   STATUS    RESTARTS   AGE
+#     redis-rc-7n9fp   1/1     Running   0          17s
+#     redis-rc-sc9cw   1/1     Running   0          17s
+#     redis-rc-vvkxr   1/1     Running   0          17s
+#

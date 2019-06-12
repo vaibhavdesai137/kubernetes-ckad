@@ -1,0 +1,22 @@
+apiVersion: v1
+
+kind: Pod
+
+metadata:
+  name: redis
+  labels:
+    app: redis
+
+spec:
+  containers:
+    - name: redis-container
+      image: redisfoo
+
+#
+# $ kubectl create -f redis-pod.yml 
+#    pod/redis created
+#
+# $ kubectl get pods
+#    NAME        READY   STATUS         RESTARTS   AGE
+#    redis       0/1     ErrImagePull   0          6s
+#
