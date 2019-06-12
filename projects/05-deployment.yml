@@ -1,0 +1,47 @@
+#
+# EXACTLY THE SAME FILE AS 04-replicaset.yml EXCEPT THE "kind".
+#
+# Infact, when a "Deployment" object is created, k8s internally creates a ReplicaSet in the background
+# So a "Deployment" will do everything RS supports and some more.
+# Eg: container image updates, rolling updates, rollbacks, etc.
+#
+
+apiVersion: apps/v1
+
+kind: Deployment
+
+metadata:
+  name: redis-deployment
+
+spec:
+  # Pod template so that RS knows how to spin up new pods when needed
+  template:
+    metadata:
+      name: redis-pod
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis-container
+          image: redis
+  # Number of replicas we want
+  replicas: 3
+  # Select the pod using labels that need replication
+  selector:
+    matchLabels:
+      app: redis
+  
+# 
+# kubectl get all
+#
+#     NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+#     deployment.apps/redis-deployment   3/3     3            3           23s
+#
+#     NAME                                         DESIRED   CURRENT   READY   AGE
+#     replicaset.apps/redis-deployment-68957546b   3         3         3       23s
+#
+#     NAME                                   READY   STATUS    RESTARTS   AGE
+#     pod/redis-deployment-68957546b-gqbbf   1/1     Running   0          23s
+#     pod/redis-deployment-68957546b-n2gj7   1/1     Running   0          23s
+#     pod/redis-deployment-68957546b-twfg2   1/1     Running   0          23s
+#

@@ -13,8 +13,6 @@ kind: ReplicaSet
 
 metadata:
   name: redis-rs
-  labels:
-    app: redis
 
 spec:
   # Pod template so that RS knows how to spin up new pods when needed
@@ -62,6 +60,6 @@ spec:
 #
 # OR
 #
-# 3. Update dyamically using replicaset name
+# 3. Update dyamically using replicaset name (this won't change the "replicas" count in actual yml file)
 # kubectl scale --replicas=6 replicaset redis-rs
 #
