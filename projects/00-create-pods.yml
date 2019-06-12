@@ -4,10 +4,10 @@
 # Create pods without yml files
 # ------------------------------
 #
-# $ kubectl run nginx --generator=run-pod/v1 --image nginx
+# $ kubectl run --generator=run-pod/v1 nginx --image nginx
 #       pod/nginx created
 # 
-# $ kubectl run redis --generator=run-pod/v1 --image redis:foo
+# $ kubectl run --generator=run-pod/v1 redis --image redis:foo
 #       pod/redis created
 # 
 # $ kubectl get pods
@@ -41,4 +41,17 @@
 #       status:
 #           ...
 #           ...
+#
+
+#
+# ---------------------------------------
+# Create pod yml files using DRY RUN
+# ---------------------------------------
+#
+# kubectl run --generator=run-pod/v1 nginx --image=nginx --dry-run -o yaml > nginx-pod-definition.yaml
+#
+# cat nginx-pod-definition.yaml
+#     ...
+#     ...
+#     ...
 #
