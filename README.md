@@ -1,2 +1,11 @@
 # kubernetes-ckad
-Notes for the CKAD exam
+
+Preparing for the Certified Kubernetes Application Developer (CKAD)
+
+Covers the following topics:
+- Pod
+- ReplicationController
+- ReplicaSet
+- Deployment
+- Service
+
