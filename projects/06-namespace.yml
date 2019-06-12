@@ -1,0 +1,76 @@
+#
+# DEFAULT:
+# All the objects we were creating were created by default in the "DEFAULT" namespace.
+# This namespace is created automatically when the cluster is first set up.
+#
+# KUBE-SYSTEM:
+# Kubernetes separates its internal objects from user objects by using a different namespace.
+# This namespace has objects for dns, networking, etc. 
+# Having separate namespace prevents accidental user initiated deletions.
+# 
+# KUBE-PUBLIC:
+# Created auatomatically by k8s.
+# Resources that need to be made available to everyone are create here.
+#
+
+#
+# Makes sense to create different namespaces for different envs. Eg: dev, prod, etc.
+# Each namespace can have its own policy like resource limits, etc.
+# Objects within same namespace need no resolution but to talk to different namespace, resolution is needed.
+#
+# Eg: app pod connecting to mysql in same namespace can say:
+#
+# Same namespace: mysql_connect("mydb")
+# Different namespace: mysql_connect("mydb.dev.svc.cluster.local")
+#
+# "cluster.local" ---> default domain
+# "svc" ---> refers to a k8s service
+# "dev" ---> namespace name
+# "mydb" ---> service name
+#
+# The reason it works is because every time a k8s service is created, DNS is added automatically
+#
+
+# Could also be created as:
+# kubectl create namespace dev
+
+# Two ways to create objects within a namespace:
+#
+# 1. Specify as cmd line arg
+# kubectl create -f mypod.yml --namespace dev
+#
+# OR
+#
+# 2. Within the metadata tag of mypod.yml, add "namespace: dev"
+#
+
+#
+# Switching workspaces:
+# kubectl get pods --namespace dev
+# kubectl config set-context $(kubectl config current-context) --namespace=dev
+# kubectl get pods
+#
+# kubectl get pods --all-namespaces
+#
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+
+#
+# kubectl get namespaces
+#     NAME              STATUS   AGE
+#     default           Active   3h45m
+#     kube-public       Active   3h45m
+#     kube-system       Active   3h45m
+# 
+# kubectl create -f 06-namespace.yml 
+#     namespace/dev created
+#
+# kubectl get namespaces
+#     NAME              STATUS   AGE
+#     default           Active   3h45m
+#     dev               Active   3s
+#     kube-public       Active   3h45m
+#     kube-system       Active   3h45m
