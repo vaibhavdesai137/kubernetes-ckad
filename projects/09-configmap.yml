@@ -50,28 +50,38 @@ data:
   REDIS_PORT: "1234"
 
 #
-# No matter how the confif maps are created, the following is how they are injected in pods:
+# No matter how the config maps are created, the following is how they are injected in pods:
 #
 # 1. All the keys in the "redis-configmap" will be passed to the pod and then to the container
 #
-# spec:
-#   containers:
-#     - name: redis-container
-#       image: redis
-#       envFrom:
-#         - configMapRef:
+#   ...
+#   ...
+#   spec:
+#     containers:
+#       - name: redis-container
+#         image: redis
+#         envFrom:
+#           - configMapRef:
 #             name: redis-configmap
+#   ...
+#   ...
 #
 # 2. Individually select the keys from config maps
 #
-# spec:
-#   containers:
-#     - name: redis-container
-#       image: redis
-#       env:
-#         - name: REDIS_HOST
-#           valueFrom: 
-#             configMapKeyRef:
-#               name: redis-configmap
-#               key: REDIS_HOST
+#   ...
+#   ...
+#   spec:
+#     containers:
+#       - name: redis-container
+#         image: redis
+#         env:
+#           - name: REDIS_HOST
+#             valueFrom: 
+#               configMapKeyRef:
+#                 name: redis-configmap
+#                 key: REDIS_HOST
+#   ...
+#   ...
+#
+# 3. Use volumes 
 #
