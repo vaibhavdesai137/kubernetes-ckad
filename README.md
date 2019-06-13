@@ -8,4 +8,9 @@ Covers the following topics:
 - ReplicaSet
 - Deployment
 - Service
+- Environment variables
+- ConfigMap
+- Secret
+- Security Context
+- Service Account
 
