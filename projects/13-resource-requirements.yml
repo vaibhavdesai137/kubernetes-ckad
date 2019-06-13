@@ -5,6 +5,15 @@
 # Based on the available resources on a node, the k8s scheduler decides where the pod should be placed.
 # If no nodes match the resource requirements for a pod, k8s will not run the pod and the pod state would be PENDING.
 #
+# Something like this when using the "describe" command for pod:
+#
+#     Events:
+#     Type     Reason            Age               From               Message
+#     ----     ------            ----              ----               -------
+#     Warning  FailedScheduling  7s (x6 over 22s)  default-scheduler  0/2 nodes are available: 2 Insufficient cpu.
+#
+
+#
 # Resource Requests:
 # By default, k8s assumes every container in a pod needs 0.5 cpu and 256 Mi mem.
 # These are called resource requests.
@@ -18,6 +27,9 @@
 # By default, k8s set the container limit to 1 cpu and 512 Mi mem.
 # Even with limits, a pod can end up using more mem.
 # In such a case, k8s will TERMINATE the pod.
+# Like this:
+#     NAME       READY     STATUS      RESTARTS   AGE
+#     elephant   0/1       OOMKilled   0          5s
 #
 # resource request = bare minimum resources needed to start a container
 # resource limit = maximum resources that a container is allowed to use
@@ -52,10 +64,10 @@ spec:
       resources:
         requests:
           memory: "1Gi"
-          cpu: 1
+          cpu: "1"
         limits:
           memory: "2Gi"
-          cpu: 2
+          cpu: "2"
 
 # 
 # kubectl create -f 13-resource-requirements.yml 
