@@ -7,12 +7,9 @@
 #
 
 apiVersion: apps/v1
-
 kind: Deployment
-
 metadata:
   name: redis-deployment
-
 spec:
   # Pod template so that RS knows how to spin up new pods when needed
   template:

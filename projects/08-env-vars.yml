@@ -1,0 +1,32 @@
+
+#
+# We can pass vars using the "env" key (as many as we want) in 3 ways:
+# 
+# 1. Using direct key-value pairs (eg: NGINX_PORT)
+#   OR
+# 2. Using config maps (more on this later) 
+#   OR
+# 3. Using secrets (more on this later) 
+# 
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: some-pod
+spec:
+  containers:
+    - name: nginx-container
+      image: nginx
+      env:
+        - name: NGINX_PORT
+          value: foobar
+        - name: SOME_VAR
+          valueFrom:
+            configMapKeyRef: 
+    - name: mysql-container
+      image: mysql
+      env:
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef: 
+

@@ -8,12 +8,9 @@
 #
 
 apiVersion: apps/v1
-
 kind: ReplicaSet
-
 metadata:
   name: redis-rs
-
 spec:
   # Pod template so that RS knows how to spin up new pods when needed
   template:

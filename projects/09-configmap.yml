@@ -1,0 +1,77 @@
+
+#
+# Specifying too many key-values using "env" can get problematic.
+# It would be better to combine all container-specific configs in one place.
+# Thats what config maps do.
+# 
+# Two phases:
+# 1. Creating the config map
+# 2. Injecting that into the pod
+#
+# Creation (3 ways):
+#
+# 1. Imperative way (directly on cmd line)
+# kubectl create configmap mysql-configmap --from-literal=MYSQL_HOST=localhost --from-literal=MYSQL_DB=mydb
+#     configmap/mysql-configmap created
+#
+# kubectl get configmap
+#     NAME              DATA   AGE
+#     mysql-configmap   2      6s
+#
+# kubectl describe configmap mysql-configmap
+#     Name:         mysql-configmap
+#     Namespace:    default
+#
+#     Data
+#     ====
+#     MYSQL_HOST:
+#     ----
+#     localhost
+#
+#     MYSQL_DB:
+#     ----
+#     mydb
+#
+# 2. Imperative way (but using a config file)
+# cat ./mysql.properties
+#     MYSQL_HOST: localhost
+#     MYSQL_DB: mydb
+# kubectl create configmap mysql-configmap --from-file=./mysql.properties
+#
+# 3. Declarative way using the definition file as below
+#
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-configmap
+data:
+  REDIS_HOST: localhost
+  REDIS_PORT: "1234"
+
+#
+# No matter how the confif maps are created, the following is how they are injected in pods:
+#
+# 1. All the keys in the "redis-configmap" will be passed to the pod and then to the container
+#
+# spec:
+#   containers:
+#     - name: redis-container
+#       image: redis
+#       envFrom:
+#         - configMapRef:
+#             name: redis-configmap
+#
+# 2. Individually select the keys from config maps
+#
+# spec:
+#   containers:
+#     - name: redis-container
+#       image: redis
+#       env:
+#         - name: REDIS_HOST
+#           valueFrom: 
+#             configMapKeyRef:
+#               name: redis-configmap
+#               key: REDIS_HOST
+#
