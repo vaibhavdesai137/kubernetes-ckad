@@ -1,0 +1,82 @@
+
+#
+# Every k8s node needs cpu, mem and disk.
+# Every pod needs the above resources to work.
+# Based on the available resources on a node, the k8s scheduler decides where the pod should be placed.
+# If no nodes match the resource requirements for a pod, k8s will not run the pod and the pod state would be PENDING.
+#
+# Resource Requests:
+# By default, k8s assumes every container in a pod needs 0.5 cpu and 256 Mi mem.
+# These are called resource requests.
+# We can explicitly set the resource requests for our pod.
+# If a scheduler cannot meet the resource requests for a container, the pod would enter the PENDING state.
+#
+# Resource Limits:
+# Now, once a container is created, it can end up using all available resources (cpu, mem).
+# This will cause starvation to other containers or even host processes.
+# To avoid this, we can specify resource limits.
+# By default, k8s set the container limit to 1 cpu and 512 Mi mem.
+# Even with limits, a pod can end up using more mem.
+# In such a case, k8s will TERMINATE the pod.
+#
+# resource request = bare minimum resources needed to start a container
+# resource limit = maximum resources that a container is allowed to use
+#
+
+#
+# CPU:
+# CPU requests can go as low as "1m" (= 0.1) where "m" stands for milli.
+# What does 1 cpu mean?
+#   = 1 AWS vCPU
+#   = 1 GCP Core
+#   = 1 Azure Core
+#   = 1 Hyperthread
+#
+# MEM:
+# MEM can be requested in (G, M, K, Gi, Mi, Ki)
+# What does 1 cpu mean?
+#   = 1 AWS vCPU
+#   = 1 GCP Core
+#   = 1 Azure Core
+#   = 1 Hyperthread
+#
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+spec:
+  containers:
+    - name: nginx-container
+      image: nginx
+      resources:
+        requests:
+          memory: "1Gi"
+          cpu: 1
+        limits:
+          memory: "2Gi"
+          cpu: 2
+
+# 
+# kubectl create -f 13-resource-requirements.yml 
+#     pod/nginx-pod created
+#
+# kubectl describe pod nginx-pod
+#     Name:               nginx-pod
+#     Namespace:          default
+#     ...
+#     ...
+#     Containers:
+#       nginx-container:
+#         Container ID:   docker://6d9bcab12a7b947e7f867e17f48dd8cb03b93930030c0dcf11b9249d774a3578
+#         Image:          nginx
+#         ...
+#         Limits:
+#           cpu:     2
+#           memory:  2Gi
+#         Requests:
+#           cpu:        1
+#           memory:     1Gi
+#     ...     
+#     ...
+#

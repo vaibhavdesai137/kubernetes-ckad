@@ -17,7 +17,7 @@ spec:
 # kubectl get resourcequotas
 #     No resources found.
 #
-# kubectl create -f 07-resourcequota.yml 
+# kubectl create -f 07-resource-quota.yml 
 #     resourcequota/dev-rq created
 #
 # kubectl get resourcequotas --namespace dev
