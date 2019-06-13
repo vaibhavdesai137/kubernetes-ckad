@@ -50,7 +50,13 @@ spec:
       securityContext:
         runAsUser: 5001
 
-# 
+#
+# kubectl exec ubuntu-container-1 whoami
+#     1001
+#
+# kubectl exec ubuntu-container-2 whoami
+#     5001
+#
 # Try uddating the 1st container's time:
 #
 # kubectl exec -it ubuntu-container-1 -- date -s '01 JAN 2001 10:10:10'
