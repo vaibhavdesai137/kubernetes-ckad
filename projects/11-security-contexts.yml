@@ -1,0 +1,75 @@
+
+#
+# Host processes and containers SHARE the same kernel.
+#
+# In docker, all processes in the containers run as root by default.
+# The "root" user within docker has stripped down permissions than the system "root".
+# This is so that the container doesn't mess up the host system.
+# Also, all processes within the container run on the host but in their own namespace and hence the processes don't jump on each other.
+# Nothing new, typical lxc stuff.
+#
+# We can give more or take away permissions when creating containers.
+# docker run --cap-add MAC_ADMIN -d ubuntu
+# docker run --cap-drop KILL -d ubuntu
+# docker run --privileged -d ubuntu (full root access as host root)
+#
+# We can use a different user too instead of root.
+#   docker run --user=1001 -d ubuntu 
+# If we wanted this to be the default, we can create a new image with the dockerfile as:
+#   FROM ubuntu
+#   USER 1001 
+# docker build -t my-ubuntu-image .
+# Then all containers built using my-ubuntu-image will run under the user 1001
+#
+
+#
+# Setting users and adding/removing permissions are available via kubernetes as well.
+# Containers are encapsulated within pods.
+#
+# Security settings can be assigned at container level
+#   OR
+# Security settings can be assigned at pod level (same settings will be passed on to all containers in the pod)  
+#
+# If settings are applied at both levels, container settings will override the pod settings
+#
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: multi-pod
+spec:
+  securityContext:
+    runAsUser: 1001
+  containers:
+    # This container will run as user 1001 (inherited from pod level)
+    - name: ubuntu-container-1
+      image: ubuntu
+    # This container will run as user 5001 (overriding the one at pod level)
+    - name: ubuntu-container-2
+      image: ubuntu
+      securityContext:
+        runAsUser: 5001
+
+# 
+# Try uddating the 1st container's time:
+#
+# kubectl exec -it ubuntu-container-1 -- date -s '01 JAN 2001 10:10:10'
+#     date: cannot set date: Operation not permitted
+#     Mon Jan 01 10:10:10 UTC 2001
+#     command terminated with exit code 1
+#
+# Add the necessary permissions and try again:
+#
+#     ...
+#     ...
+#     - name: ubuntu-container-1
+#       image: ubuntu
+#       securityContext:
+#         capabilities:
+#           add: ["SYS_TIME"]
+#     ...
+#     ...
+#
+# kubectl exec -it ubuntu-container-1 -- date -s '01 JAN 2001 10:10:10'
+#     Mon Jan  1 10:10:10 UTC 2001
+#
