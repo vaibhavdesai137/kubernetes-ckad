@@ -1,0 +1,126 @@
+
+#
+# Imagine a cluster with 3 nodes (n1, n2, n3) and 4 pods (p1, p2, p3, p4).
+# Lets say pod p3 is our most important pod so we want to ensure its not sharing resources with any other pod.
+# Its ok if multiple pods of p3 get created on the same node. But p1, p2 and p4 cannot be created.
+# In short, we want some nodes to only take certain pods and reject others.
+# This is where taints and tolerations come handy.
+#
+# Analogy: 
+# Lets say you have some flu. And you are trying different antibiotics. But the bacteria does not go away.
+# Here, you are the node. And bacteria is the pod. New bacteria keeps entering your body.
+# So you finally "taint" your body to avoid getting that bacteria. And because that bacteria is intolerant to teh taint, it can't enter anymore.
+# So you have managed to ensure you can never get that bacteria again.
+# Few days later, you went mad and are badly craving for that bacteria.
+# So you go to CDC and ask them to add "toleration" to the bacteria so it can enter you even though you have been tainted.
+# This is called toleration.
+#
+# Going back to k8s, we should "taint" node n1 and add "tolerations" to pod p3 so that only p3 can be scheduled on n1.
+# Note that by "tainting" n1, we are guaranting that n1 will never take any pod other than p3.
+# But this does not mean that p3 cannot be created on n2 and n3.
+# Without tainting, to create all 4 pods, scheduler would have started sequentially.
+# p1 on n1, p2 on n2, p3 on n3 and p4 on n1.
+#
+# Taints & Tolerations combined tell the k8s scheduler what pods can be scheduled on what nodes.
+#
+# IF YOU ADD TAINT TO A NODE BUT NO TOLERATION ON ANY POD, THAT NODE IS ESSENTIALLY SITTING USELESS BECAUSE BY DEFAULT, PODS HAVE NO TOLERATIONS.
+# IF WE WANT TO RESTRICT SCHEDULING OF SOME PODS TO CERTAIN NODES, WE NEED NODE AFFINITY (more on this later)
+#
+
+#
+# kubectl taint nodes <node-name> key=value:<taint-effect>
+#
+# Taint Effects:
+# 
+#   1. NoSchedule: 
+#         - As the name implies, the tainted node CANNOT schedule pods that do not have the taint toleration
+#   2. PreferNoSchedule:
+#         - The tainted node will only be used as last resort if the k8s scheduler cannot find a node to create a pod
+#   3. NoExecute:
+#         - Imagine a case where the pods are already created and the taint is applied later.
+#         - Once the taint is applied, scheduler will check if the pods satisfy the taint/tolerations requirements for the newly tainted node.
+#         - Pods that violate this will be terminated from this node and created on another node.
+#
+
+#
+# Now, the "master" node of the k8s cluster is also just another node with more stuff running on it:
+#   - scheduler, kube-api, dns service, etc.
+# Then why do pods not get created on the master?
+# This is because when the cluster is first setup and a master node is created, k8s will automatically add a taint of NoSchedule on the master.
+# If needed, we can modify this behavior.
+# In fact, minikube does this in MAC environment. Minikube is the only node available so it acts as a "master" and a regular "node".
+# No taints are created for minikube.
+
+# kubectl get nodes
+#     NAME       STATUS   ROLES    AGE   VERSION
+#     minikube   Ready    master   19d   v1.14.2
+#
+# kubectl describe node minikube
+#     ...
+#     Taints:             <none>
+#     ...
+#
+# On a prod system, with the master node named as "master", it would look like:
+# kubectl describe node minikube
+#     ...
+#     Taints:             node-role.kubernetes.io/master:NoSchedule
+#     ...
+#
+
+#
+# Creating a taint for the node:
+#     kubectl taint node node01 spray=mortein:NoSchedule
+#
+# Create a pod without any toleration:
+#     apiVersion: v1
+#     kind: Pod
+#     metadata:
+#       name: mosquito
+#     spec:
+#       containers:
+#         - name: mosquito-container
+#           image: nginx      
+#
+# kubectl get pods
+#     NAME       READY     STATUS    RESTARTS   AGE
+#     moqsuito   0/1       Pending   0          5s
+#
+# kubectl describe pod mosquito
+#     ...
+#     ...
+#     Events:
+#     Type     Reason            Age               From               Message
+#     ----     ------            ----              ----               -------
+#     Warning  FailedScheduling  2s (x7 over 27s)  default-scheduler  0/2 nodes are available: 2 node(s) had taints that the pod didn't tolerate.
+#
+# Create another pod that has the required toleration:
+#     apiVersion: v1
+#     kind: Pod
+#     metadata:
+#       name: bee-pod
+#     spec:
+#       containers:
+#         - name: bee-container
+#           image: nginx 
+#       tolerations:
+#           - key: spray
+#             operator: "Equal"
+#             value: "mortein"
+#             effect: "NoSchedule"
+#
+# kubectl get pods
+#     NAME       READY     STATUS    RESTARTS   AGE
+#     bee        1/1       Running   0          9s
+#     mosquito   0/1       Pending   0          7m
+#
+# Remove the taint from master node
+# kubectl taint nodes master node-role.kubernetes.io/master:NoSchedule-
+#     node/master untainted
+#
+# kubectl get pods
+#     NAME       READY     STATUS    RESTARTS   AGE
+#     bee        1/1       Running   0          1m
+#     mosquito   1/1       Running   0          9m
+#
+# Now, both pods are running, "bee" on node01 and "mosquito" on master since master was untainted.
+#
