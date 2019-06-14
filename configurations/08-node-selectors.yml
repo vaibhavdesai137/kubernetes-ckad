@@ -64,6 +64,7 @@
 # For eg: 
 #   - how do we specify a selector that says place this pod on anything but "small" node.
 #   - how do we specify a selector that says place this pod on either "medium" or "small" node.
+#   - when number of labels go high, managing them itself may become a nightmare.
 #
 # To answer these questions, we need Node Affinity.
 #

@@ -1,0 +1,90 @@
+
+#
+# Node selectors CANNOT solve all problems of custom placements.
+# For eg: 
+#   - how do we specify a selector that says place this pod on anything but "small" node.
+#   - how do we specify a selector that says place this pod on either "medium" or "small" node.
+#   - when number of labels go high, managing them itself may become a nightmare.
+#   
+# To answer these questions, we need Node Affinity.
+# With node Affnity, a lot more complex expressions can be used (exists, in, not in, etc.)
+#
+# Like node selectors, affinity is also a 2 step process.
+#
+# Two steps:
+# 1. Apply label to a node (same as node selector)
+# 2. Apply the right affinity in the pod definition file
+#
+
+#
+# kubectl label node <node-name> <label-key>=<label-value>
+#
+# kubectl label node n1 size=small
+# kubectl label node n2 size=medium
+# kubectl label node n3 size=large
+#
+# Pods (p1): (Create a pod on either medium/large node)
+#     apiVersion: v1
+#     kind: Pod
+#     metadata:
+#       name: p1
+#     spec:
+#       containers:
+#         - name: my-bigdata-processor-container
+#           image: my-bigdata-processor
+#       nodeAffnity:
+#         requiredDuringSchedulingIgnoredDuringExecution:
+#           nodeSelectorTerms:
+#             - matchExpressions:
+#                 key: size
+#                 operator: In
+#                 values: 
+#                   - medium
+#                   - large
+#
+# This pod should then be scheduled on n2 or n3.
+#
+
+#
+# More expressions:
+#
+# 1. Create a pod on any node that has a label with key "size". Its value does not matter.
+#
+#   nodeAffnity:
+#     requiredDuringSchedulingIgnoredDuringExecution:
+#       nodeSelectorTerms:
+#         - matchExpressions:
+#             key: size
+#             operator: Exists
+#
+# 2. PREFER to create the pod on any node that has a label with key "size". If the schudler can't find one then use any node.
+#
+#   nodeAffnity:
+#     preferredDuringSchedulingIgnoredDuringExecution:
+#       nodeSelectorTerms:
+#         - matchExpressions:
+#             key: size
+#             operator: Exists
+
+#
+# Node Affinity Types:
+#
+# 1. requiredDuringSchedulingIgnoredDuringExecution (Available today)
+#   - the criteria has to match on the node when creating a pod
+#   - if no nodes match the criteria, then pod would go in PENDING state
+#   - once the pod created and is in running mode, then ignore all label changes & let the pod continue running
+#
+# 2. preferredDuringSchedulingIgnoredDuringExecution (Available today)
+#   - try to match the criteria on the node when creating a pod
+#   - if no nodes match the criteria, then use any available node
+#   - once the pod created and is in running mode, then ignore all label changes & let the pod continue running
+#
+# 3. requiredDuringSchedulingRequiredDuringExecution (Planned for future)
+#   - the criteria has to match on the node when creating a pod
+#   - if no nodes match the criteria, then pod would go in PENDING state
+#   - once the pod created and is in running mode, for any label changes on the node:
+#     - evaluate the criteria againthen ignore all label changes & let the pod continue running
+#     - if the node still meets the criteria then all is well
+#     - if not, terminate the pod and find a new node that matches the criteria
+#     - if no new nodes available, then pod would go in PENDING state
+#
