@@ -5,11 +5,11 @@ Preparing for the Certified Kubernetes Application Developer (CKAD)
 Covers the following topics:
 
 ### Core:
-- Pod
-- ReplicationController
-- ReplicaSet
-- Deployment
-- Service
+    - Pod
+    - ReplicationController
+    - ReplicaSet
+    - Deployment
+    - Service
 
 ### Configurations:
     - Environment variables
