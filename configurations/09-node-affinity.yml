@@ -32,15 +32,16 @@
 #       containers:
 #         - name: my-bigdata-processor-container
 #           image: my-bigdata-processor
-#       nodeAffnity:
-#         requiredDuringSchedulingIgnoredDuringExecution:
-#           nodeSelectorTerms:
-#             - matchExpressions:
-#                 key: size
-#                 operator: In
-#                 values: 
-#                   - medium
-#                   - large
+#       affinity:
+#         nodeAffnity:
+#           requiredDuringSchedulingIgnoredDuringExecution:
+#             nodeSelectorTerms:
+#               - matchExpressions:
+#                   - key: size
+#                     operator: In
+#                     values: 
+#                       - medium
+#                       - large
 #
 # This pod should then be scheduled on n2 or n3.
 #
@@ -50,21 +51,23 @@
 #
 # 1. Create a pod on any node that has a label with key "size". Its value does not matter.
 #
-#   nodeAffnity:
-#     requiredDuringSchedulingIgnoredDuringExecution:
-#       nodeSelectorTerms:
-#         - matchExpressions:
-#             key: size
-#             operator: Exists
+#   affinity:
+#     nodeAffnity:
+#       requiredDuringSchedulingIgnoredDuringExecution:
+#         nodeSelectorTerms:
+#           - matchExpressions:
+#               - key: size
+#                 operator: Exists
 #
 # 2. PREFER to create the pod on any node that has a label with key "size". If the schudler can't find one then use any node.
 #
-#   nodeAffnity:
-#     preferredDuringSchedulingIgnoredDuringExecution:
-#       nodeSelectorTerms:
-#         - matchExpressions:
-#             key: size
-#             operator: Exists
+#   affinity:
+#     nodeAffnity:
+#       preferredDuringSchedulingIgnoredDuringExecution:
+#         nodeSelectorTerms:
+#           - matchExpressions:
+#               - key: size
+#                 operator: Exists
 
 #
 # Node Affinity Types:
