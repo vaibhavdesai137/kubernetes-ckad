@@ -10,7 +10,7 @@
 # 
 # KUBE-PUBLIC:
 # Created auatomatically by k8s.
-# Resources that need to be made available to everyone are create here.
+# Resources that need to be made available to everyone are created here.
 #
 
 #
@@ -34,6 +34,7 @@
 # Could also be created as:
 # kubectl create namespace dev
 
+#
 # Two ways to create objects within a namespace:
 #
 # 1. Specify as cmd line arg

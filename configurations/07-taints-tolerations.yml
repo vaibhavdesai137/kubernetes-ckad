@@ -9,7 +9,7 @@
 # Analogy: 
 # Lets say you have some flu. And you are trying different antibiotics. But the bacteria does not go away.
 # Here, you are the node. And bacteria is the pod. New bacteria keeps entering your body.
-# So you finally "taint" your body to avoid getting that bacteria. And because that bacteria is intolerant to teh taint, it can't enter anymore.
+# So you finally "taint" your body to avoid getting that bacteria. And because that bacteria is intolerant to the taint, it can't enter anymore.
 # So you have managed to ensure you can never get that bacteria again.
 # Few days later, you went mad and are badly craving for that bacteria.
 # So you go to CDC and ask them to add "toleration" to the bacteria so it can enter you even though you have been tainted.
@@ -50,7 +50,7 @@
 # If needed, we can modify this behavior.
 # In fact, minikube does this in MAC environment. Minikube is the only node available so it acts as a "master" and a regular "node".
 # No taints are created for minikube.
-
+#
 # kubectl get nodes
 #     NAME       STATUS   ROLES    AGE   VERSION
 #     minikube   Ready    master   19d   v1.14.2

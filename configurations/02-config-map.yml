@@ -62,7 +62,7 @@ data:
 #         image: redis
 #         envFrom:
 #           - configMapRef:
-#             name: redis-configmap
+#               name: redis-configmap
 #   ...
 #   ...
 #

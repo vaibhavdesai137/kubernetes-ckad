@@ -7,7 +7,7 @@
 #   - when number of labels go high, managing them itself may become a nightmare.
 #   
 # To answer these questions, we need Node Affinity.
-# With node Affnity, a lot more complex expressions can be used (exists, in, not in, etc.)
+# With node affnity, a lot more complex expressions can be used (exists, in, not in, etc.)
 #
 # Like node selectors, affinity is also a 2 step process.
 #
@@ -86,8 +86,8 @@
 #   - the criteria has to match on the node when creating a pod
 #   - if no nodes match the criteria, then pod would go in PENDING state
 #   - once the pod created and is in running mode, for any label changes on the node:
-#     - evaluate the criteria againthen ignore all label changes & let the pod continue running
-#     - if the node still meets the criteria then all is well
+#     - evaluate the criteria again
+#     - if the node still meets the criteria then let the pod continue running
 #     - if not, terminate the pod and find a new node that matches the criteria
 #     - if no new nodes available, then pod would go in PENDING state
 #

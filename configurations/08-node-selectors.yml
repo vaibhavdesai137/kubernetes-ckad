@@ -6,7 +6,7 @@
 #   - n3 is a high cpu, high mem node
 #
 #   - p1 is a pod that does crazy BigData processing
-#   - p1 & p2 are stupid pods and don't need much resources
+#   - p2 & p3 are stupid pods and don't need much resources
 #
 # Lets say we now schedule all 3 pods.
 # It is possible that we need with the following:

@@ -1,7 +1,7 @@
 #
 # ReplicaSet (RS) was the older way of doing replicas.
 # With RS, we can now have "selectors" so it can look for pods that it itself did not create.
-# Assume 3 pods were alreayd running for redis, and then we create this RS.
+# Assume 3 pods were already running for redis, and then we create this RS.
 # In that case, RS won't spin up 3 new pods since it will see 3 are already running.
 # So then why do we need the template section for our pod?
 # Its because if we wanted more than 3, RS needs to know how to create new pods.

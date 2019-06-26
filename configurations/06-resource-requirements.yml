@@ -46,11 +46,6 @@
 #
 # MEM:
 # MEM can be requested in (G, M, K, Gi, Mi, Ki)
-# What does 1 cpu mean?
-#   = 1 AWS vCPU
-#   = 1 GCP Core
-#   = 1 Azure Core
-#   = 1 Hyperthread
 #
 
 apiVersion: v1
@@ -70,7 +65,7 @@ spec:
           cpu: "2"
 
 # 
-# kubectl create -f 13-resource-requirements.yml 
+# kubectl create -f 06-resource-requirements.yml 
 #     pod/nginx-pod created
 #
 # kubectl describe pod nginx-pod
