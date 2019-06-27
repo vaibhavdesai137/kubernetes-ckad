@@ -1,0 +1,109 @@
+
+#
+# Containers serve different types of workloads: apiapp, webapp, db, cache, etc.
+# These workloads are meant to continue running until manually shutdown.
+# There are other types of workloads that are meant to run for a short time and finish.
+# Examples include: batch processing, running analytics, generating reports and sending email, etc.
+#
+
+#
+# Consider this docker cmd:
+#
+# docker run alpine expr 3 + 8
+#     11
+# docker ps -a
+#     CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS                     PORTS               NAMES
+#     fc4abc7b38ec        alpine              "expr 3 + 8"        9 seconds ago       Exited (0) 7 seconds ago                       hopeful_bassi
+#
+# Here the container comes up, runs the operation and exits.
+# Running "docker ps" cmd shows the conatiner in exited state.
+# The return code of 0 is also shown next to status.
+#
+
+#
+# Attempting the same in k8s:
+#
+# apiVersion: v1
+# kind: Pod
+# metadata:
+#   name: math-pod
+# spec:
+#   containers:
+#     - name: math-container
+#       image: alpine
+#       command: ["expr", "3", "+", "8"]
+#
+# When you create the pod using the above:
+#   - k8s creates the pod
+#   - the command gets executed in the container
+#   - the pod dies
+# k8s sees this and restarts the pod
+# The same cycle repeats and this goes in an endless loop until the threshold is reached
+#
+# kubectl get pod math-pod
+#     NAME       READY   STATUS       RESTARTS   AGE
+#     math-pod   0/1     Completed    4          14s
+#
+# This happens because kubectl wants to ensure the pod is up at all times.
+#
+# This behavior is defined by the RestartPolicy on the pod which, by default, is set to Always.
+# We can override this behavior by setting this property to either:
+#   - Never: Do not restart no matter what.
+#   - OnFailure: Attemp the restart only if the exit code from the container was non-zero.
+#
+
+# 
+# JOBS:
+# A replica set works by creating replicas of the pods. All pods do the same work.
+# A Job is used to run a set of pods to perform a given task to completion.
+# Please note that if we want to divide the work amongst multiple job pods, we will need to write the logic.
+#
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: math-job
+spec:
+  completions: 3
+  template:
+    spec:
+      containers:
+        - name: math-container
+          image: alpine
+          command: ["expr", "3", "+", "8"]
+      restartPolicy: Never
+
+#
+# Completions indicate the numbr of times the pods need to be created.
+# A new job pod is created only when the previous one finishes.
+# If any pods fail for whatever reasons, k8s will keep attempting new pods till it gets the desired number of completions.
+# If we need parallelism, we can add the property:
+#   ...
+#   completions: 5
+#   parallelism: 2
+#   ...
+# Here, 2 pods will be scheduled first, then another 2, then 1.
+#
+# kubectl create -f 04-pod-design/04-jobs.yml 
+#       job.batch/math-job created
+#
+# kubectl get jobs
+#       NAME       COMPLETIONS   DURATION   AGE
+#       math-job   3/3           10s        10s
+#
+# kubectl get pods
+#       NAME             READY   STATUS      RESTARTS   AGE
+#       math-job-rnxvk   0/1     Completed   0          91s
+#       math-job-sdhbj   0/1     Completed   0          91s
+#       math-job-qwoxn   0/1     Completed   0          91s
+#
+# kubectl logs math-job-rnxvk
+#       11
+#
+# As you see the job completed and had ZERO restarts.
+#
+# kubectl delete job math-job
+#       job.batch "math-job" deleted
+#
+# Deleting the job will also delete the pods created for that job.
+#

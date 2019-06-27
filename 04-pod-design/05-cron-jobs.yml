@@ -1,0 +1,24 @@
+
+#
+# Regular "Job" gets executed as soon as it is created.
+# With cron jobs, we can schedule jobs using cron expressions.
+#
+
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: reporting-cron-job
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    # Entrire "spec" of a regular Job moves here
+    spec:
+      completions: 5
+      parallelism: 2
+      template:
+        spec:
+          containers:
+            - name: math-container
+              image: alpine
+              command: ["expr", "3", "+", "8"]
+          restartPolicy: Never
