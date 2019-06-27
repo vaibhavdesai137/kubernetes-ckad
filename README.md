@@ -26,4 +26,4 @@ Covers the following topics:
     - Readiness Probes
     - Liveness Probes
     - Logging
-    - Monitoring Applications
+    - Monitoring

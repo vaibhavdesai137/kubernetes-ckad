@@ -1,0 +1,55 @@
+
+#
+# k8s does not have full blown monitoring solutions yet.
+# Monitoring is needed to see what pods are utilizing what resources, running analysis on usage, etc.
+# A lot of 3rd party solutions are available. (prometheus, metrics server, dynatrace, datadog, etc.)
+#
+
+#
+# We'll just deal with Metrics Server. Its a lightweight version of, now deprecated, Heapster.
+# We can have 1 mterics server per k8s cluster.
+# Metrics Server receives data from all nodes, pods, services, etc., aggregates them and stores them in-memory.
+# No storing data to disk hence historical analysis is not possible.
+# To achieve that, a more complex monitoring solution would be needed.
+#
+
+#
+# KUBELET:
+# Every k8s node has a kubelet agent running on it.
+# This agent is responsible for receiving instrcutions from kube api master and also from running pods.
+# This agent contains a subcomponet called the "cAdvisor".
+# cAdvisor is responsible for gathering metrics from running pods and transfer them to metrics server via kubelet agent.
+#
+
+#
+# Install metrics-server:
+#
+# For dev: minikube addons enable metrics-server
+#
+# For prod: 
+#     1. git clone https://github.com/kubernetes-incubator/metrics-server.git
+#     2. kubectl create -f kubernetes-metrics-server/
+#
+
+#
+# To view metrics:
+#
+# kubectl top node (local)
+#     NAME       CPU(cores)   CPU%   MEMORY(bytes)   MEMORY%   
+#     minikube   168m         8%     1406Mi          74%       
+#
+# kubectl top node (prod)
+#     NAME      CPU(cores)   CPU%      MEMORY(bytes)   MEMORY%
+#     master    267m         6%        1161Mi          61%
+#     node01    3984m        99%       531Mi           3%
+#
+# kubectl top pod (local)
+#     NAME        CPU(cores)   MEMORY(bytes)   
+#     nginx-pod   0m           2Mi     
+#
+# kubectl top pod (prod)
+#     NAME       CPU(cores)   MEMORY(bytes)
+#     elephant   3m           50Mi
+#     lion       2947m        1Mi
+#     rabbit     999m         1Mi
+#
