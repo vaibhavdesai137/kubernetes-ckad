@@ -1,0 +1,51 @@
+#
+# Its always better to have microservice arch instead of one monolithic application.
+# The same holds true when designing pods/containers.
+# So, ideally, each pod should only consist of a single container.
+# But there are cases when we want one pod to have multiple containers in it.
+# 
+# Imagine a pod that has 2 containers, app & logger.
+# Now the logger container by itself makes no sense. It is only needed when the application is running and logging something.
+# Also, since we don't want our app to have all the logger logic, we want to the logger to be a separate container than the app.
+# Also, in case of bugs, etc. both can be rolled out seperately.
+# This is a case of a pod with multi containers.
+#
+# In multi container pods, all containers are created together, scaled together and destroyed together.
+# They share the same network space, can refer to each other as localhost and have access to same storage volumes.
+#
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: multi-container-pod
+spec:
+  containers:
+    - name: myapp-container
+      image: myapp
+    - name: logagent-container
+      image: logagent
+
+#
+# Three major types of multi-container pods:
+# 
+# SIDECAR: 
+#     The example above of the app with log agent is a sidecar example.
+#
+# ADAPTER: 
+#     - Imagine a case where apps in pods are creating logs in different formats.
+#     - Here, the burden falls on central log server to process the msgs with different formats.
+#     - Instead, we can have a container running with these apps that converts it to a pre-defined log format.
+#     - Thus it reduces the workload of the central log server.
+#     - Such a container doing the processing of log msgs before sending it to log server is an adapter container pattern.
+#     - Think of it as a helper cntainer.
+#
+# AMBASSADOR:
+#     - The app talks to different DBs during different phases of development.
+#     - Eg: dev, test, staging, pre-pord, prod, etc.
+#     - This means the code configs need to change based on the env the app is running in.
+#     - We can always OUTSOURCE this logic to a separate container.
+#       - Such a container can then be used by any application.
+#       - No reason for every app team to write the same logic in their code.
+#       - They just refer to the DB as localhost and this helper container can then proxy the req to correct db based on env.
+#     - This is an example of ambassador container.
+#

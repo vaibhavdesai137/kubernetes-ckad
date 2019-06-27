@@ -1,0 +1,30 @@
+
+#
+# Question:
+# Assume 3 nodes (red, green, blue) and 3 pods (red, green, blue).
+# Other than these nodes/pods, there are other nodes and pods in the same cluster.
+# We want the red pod to go on red node, green on green and blue on blue.
+#
+# Incorrect Solution 1: 
+# Using taints and tolerations:
+# We can taint the 1st node as red, 2nd as green and 3rd as blue.
+# In our pod definition, we can then add tolerations with the corressponding taints.
+# This solution does not work because taints only guarantee that a particular node can accept a particular pod.
+# It does not guarantee that the pod won't be placed on a node with no taints.
+# For eg: red pod may be created on red node, green on green but blue pod can be created on a node that has no taints.
+# Basically, taints only can tell what pods can be accepted by a node but cannot influence the scheduler to do what we want.
+#
+# Incorrect Solution 2:
+# Using node affinity:
+# We can label the nodes as red, green and blue.
+# In our pod defnitions, we can then add correct affinity labels.
+# This solution does not work because it only tells what pods can be placed on what nodes during scheduling.
+# The nodes may still end up accepting other pods as well.
+# No way to restrict the nodes and pods to their respective colors.
+#
+# Correct Solution:
+# Using combination of node affinity & taints/tolerations:
+# Taint the nodes to prevent other pods being created on the nodes.
+# And use node affinity to prevent these pods being placed on other nodes.
+# Thus, we get a 1 to 1 mapping of our desired placement.
+#
