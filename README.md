@@ -29,7 +29,8 @@ Covers the following topics:
     - Monitoring
 
 ##### POD Design:
-    - Labels, Selectors & Annotations
+    - Labels & Selectors 
+    - Annotations
     - Rolling Updates & Rollbacks
     - Jobs
     - Cron Jobs
