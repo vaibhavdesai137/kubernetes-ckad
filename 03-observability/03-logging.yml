@@ -1,0 +1,32 @@
+
+#
+# Just like docker, k8s supports showing logs
+#
+
+#
+# docker run -d nginx
+#     753hft66
+# docker logs 753hft66
+#     ...
+#     ...
+#
+
+#
+# Since a pod can have multiple containers, we need to specify which container's logs we need.
+# 
+#   apiVersion: v1
+#   kind: Pod
+#   metadata:
+#     name: my-pod
+#   spec:
+#     containers:
+#       - name: my-container-1
+#         image: foo
+#       - name: my-container-2
+#         image: bar
+#
+#   kubectl logs -f my-pod my-container-1
+#   kubectl logs -f my-pod my-container-2
+#
+# If the pod has just 1 container, then the container name is optional.
+#
