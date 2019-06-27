@@ -1,0 +1,131 @@
+
+#
+# Pods have a lifecycle.
+#
+
+#
+# POD STATUS:
+# When the scheduler is trying to create the pod, it goes in "Pending" state. If no nodes were available, it stays in "Pending" state.
+# When placement is done, the containers are spinning up. The pod status would be "ContainerCreating".
+# Once the containers are up, the state is flipped to "Running".
+# So at any point in time, the pod status would be:
+#   - Pending
+#   - ContainerCreating
+#   - Running
+#
+# The status can be retreived using the "kubectl get pods" command.
+#
+# kubectl get pods
+#     NAME        READY   STATUS    RESTARTS   AGE
+#     nginx-pod   1/1     Running   0          4s
+#
+
+#
+# POD CONDITIONS:
+# The pod status only gives a high level summary of the pod.
+# Sometimes, we need more granular statuses than the one that pod uses.
+# For that, we have the pod conditions.
+#
+# Conditions are an array of T/F values that complement the pod status.
+#   - When a pod is scheduled on a node, the PodScheduled condition is set to true.
+#   - When a pod is initialized, the Initialized condition is set to true.
+#   - When all the containers in a pod are up, the ContainersReady condition is set to true.
+#   - When all of the above are true, Ready condition is set to true.
+#
+# kubectl describe pod nginx-pod
+#     Name:               nginx-pod
+#     Namespace:          default
+#     ...
+#     ...
+#     Conditions:
+#         Type              Status
+#         Initialized       True 
+#         Ready             True 
+#         ContainersReady   True 
+#         PodScheduled      True 
+#     
+#     ...
+#     ...
+
+#
+# The "Ready" condition is what k8s uses to determine if teh pod is ready to take traffic.
+# But the pod being "Ready" does not necessarily mean the app is up.
+# The app may need warm up time, it may be building cache, etc.
+# So imagine a case where we have a couple replicas of the pod running.
+# We want to scale up so we increase the replica set to 5.
+# k8s creates 3 more pods and they are now "Ready" but the app is still warming up.
+# Because k8s saw the pod as "Ready", it will now start forwarding requests to that pod.
+# We don't want that so we make use of readiness probes.
+# Readiness probes are nothing but intelligent ECVs which k8s will use to determine if the pod is truly "Ready" for your business use case.
+# For ex: we can have a apth like /api/health in our app.
+# We can define this in pod definition to use as readiness probe.
+# So only when this url returns valid data, the pod would be marked as "Ready"
+#
+
+#
+# Multiple types of readiness probes are available:
+#
+#   - httpGet: 
+#         1. k8s will make http request on given endpoints
+#         2. Useful for custom apps that expose rest endpoints
+#   - tcpSocket: 
+#         1. k8s attempts a tcp socket connection on a particluar port
+#         2. Useful for pods that run databases
+#   - execCommand
+#         1. k8s will execute user specified commands
+#         2. Useful for batch apps, daemon apps, etc.
+#
+
+#
+# httpGet
+# To void constant polling, we can add initial delays and intervals for the probe.
+# By default, the pod is marked as errored on 3 failed attempts so that you can change that too.
+#
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+spec:
+  containers:
+    - name: nginx-container
+      image: nginx
+      readinessProbe:
+        httpGet: 
+          path: /api/health
+          port: 8080
+        initialDelaySeconds: 10
+        periodSeconds: 5
+        failureThreshold: 10
+
+#
+# tcpSocket
+#
+apiVersion: v1
+kind: Pod
+metadata:
+  name: redis-pod
+spec:
+  containers:
+    - name: redis-container
+      image: redis
+      readinessProbe:
+        tcpSocket: 
+          port: 5432
+
+#
+# exec
+#
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-pod
+spec:
+  containers:
+    - name: myapp-container
+      image: myapp
+      readinessProbe:
+        exec:
+          # eg: the myapp can write {"ready": "true"} in the json file when its ready
+          command: 
+            - cat
+            - /var/health.json

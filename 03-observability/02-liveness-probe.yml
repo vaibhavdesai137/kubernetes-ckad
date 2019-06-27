@@ -1,0 +1,98 @@
+
+#
+# Liveness probes are exactly the same as readiness probe with only one difference.
+# If the liveness probe fails, k8s will restart the pod.
+#
+
+#
+# Here’s what this might look like in a real life failure scenario. 
+# Let’s say our API encounters a fatal exception when processing a request:
+#     1. Readiness probe fails.
+#     2. Kubernetes stops routing traffic to the pod.
+#     3. Liveness probe fails.
+#     4. Kubernetes restarts the failed container.
+#     5. Readiness probe succeeds.
+#     6. Kubernetes starts routing traffic to the pod again.
+# 
+
+# Simply put:
+#
+# k8s uses liveness probes to know when to restart a container. 
+# If a container is unresponsive (application deadlock, etc.), restarting the container can make the application more available, despite the defect. 
+#
+# k8s uses readiness probes to decide when the container is available for accepting traffic. 
+# The readiness probe is used to control which pods are used as the backends for a service. 
+# A pod is considered ready when all of its containers are ready. 
+# If a pod is not ready, it is removed from service load balancers. 
+# For example, if a container loads a large cache at startup and takes minutes to start, 
+# you do not want to send requests to this container until it is ready, 
+# or the requests will fail—you want to route requests to other pods, which are capable of servicing requests.
+#
+
+#
+# Multiple types of liveness probes are available (same as readiness probes):
+#
+#   - httpGet: 
+#         1. k8s will make http request on given endpoints
+#         2. Useful for custom apps that expose rest endpoints
+#   - tcpSocket: 
+#         1. k8s attempts a tcp socket connection on a particluar port
+#         2. Useful for pods that run databases
+#   - execCommand
+#         1. k8s will execute user specified commands
+#         2. Useful for batch apps, daemon apps, etc.
+#
+
+#
+# httpGet
+# To void constant polling, we can add initial delays and intervals for the probe.
+# By default, the pod is marked as errored on 3 failed attempts so that you can change that too.
+#
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+spec:
+  containers:
+    - name: nginx-container
+      image: nginx
+      livenessProbe:
+        httpGet: 
+          path: /api/health
+          port: 8080
+        initialDelaySeconds: 10
+        periodSeconds: 5
+        failureThreshold: 10
+
+#
+# tcpSocket
+#
+apiVersion: v1
+kind: Pod
+metadata:
+  name: redis-pod
+spec:
+  containers:
+    - name: redis-container
+      image: redis
+      livenessProbe:
+        tcpSocket: 
+          port: 5432
+
+#
+# exec
+#
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-pod
+spec:
+  containers:
+    - name: myapp-container
+      image: myapp
+      livenessProbe:
+        exec:
+          # eg: the myapp can write {"ready": "true"} in the json file when its ready
+          command: 
+            - cat
+            - /var/health.json
