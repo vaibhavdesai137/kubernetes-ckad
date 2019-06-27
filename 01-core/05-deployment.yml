@@ -42,3 +42,9 @@ spec:
 #     pod/redis-deployment-68957546b-n2gj7   1/1     Running   0          23s
 #     pod/redis-deployment-68957546b-twfg2   1/1     Running   0          23s
 #
+
+#
+# A deployment can also be created using:
+# kubectl run nginx --image=nginx:1.7.0
+# In the background, k8s will create the Deployment and the corressponding ReplicaSet.
+#

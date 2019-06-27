@@ -1,0 +1,88 @@
+
+#
+# ROLLOUTS:
+# When a new Deployment object is created, k8s triggers a rollout.
+# A new rollout creates a new deployment revision.
+# In future, when the container image changes, a new rollout is triggered creating a new deployment revision.
+# This helps to keep track of deployment and rollback to a last version when needed.
+#
+# Rollout status: kubectl rollout status deployment/myapp-deployment
+# Rollout history: kubectl rollout history deployment/myapp-deployment
+#
+
+#
+# DEPLOYMENT STRATEGY:
+# Two types of deployment strategies are available, RECREATE & ROLLING UPDATE.
+#
+# Lets say a deployment object with 5 replicas of a particular pod with image nginx:1.7.0 is created.
+# And say we want to upgrade the nginx image in our pods to nginx:1.7.1
+#
+# RECREATE: 
+#   - This strategy will destroy all running replicas and create new ones.
+#   - This is bad because it impacts availability.
+#   - What we need is rolling updates to our app.
+#   - THIS IS NOT THE DEFAULT STRATEGY.
+#
+# ROLLING UPDATE:
+#   - This strategy creates a new replica before destorying older one.
+#   - k8s does this one at a time.
+#   - This way the availability will never be impacted.
+#   - At the end of the update, we will have replicas with updated image and previous replicas deleted.
+#   - THIS IS THE DEFAULT STRATEGY.
+#   - The actual update happens because k8s creates a new replica set when the image is changed.
+#   - kubectl get replicasets
+#         NAME                          DESIRED       CURRENT       READY     AGE
+#         myapp-deployment-74gsr3nn     0             3             3         2m
+#         myapp-deployment-hg4kahcn     5             2             2         1m
+#   - As the output suggests, two replica sets in action.
+#   - The older one is getting destroyed while the newer one is getting created.
+#
+
+#
+# One way to retrigger a deployment is by changing the image name/version in deployment definition file.
+# And then calling kubectl apply -f myapp-deployment.yml
+# k8s will see the image change and trigger a deployment process.
+# NOTE THAT simply pushing a new image with the same tag WILL NOT trigger a new deployment.
+# This is because k8s has no way of knowing that the image has changed but still has the same tag.
+# A good strategy would be to tag the image with the latest commit sha and programatically update the deployment definition yml file.
+# A good build pipleine should be in place to automate this.
+#
+
+#
+# One other way to trigger a deployment is to explicitly call the kubectl set image cmd.
+# kubectl set image deployment/myapp-deployment nginx=nginx:1.7.1
+# Doing this DOES NOT UPDATE the deployment definition file and hence you end up with discrepancies.
+# Avoid this route.
+#
+
+#
+# ROLLBACK:
+# Rollback can be triggered as: kubectl rollout undo deployment/myapp-deployment
+# Assuming you have rollback revisions available:
+#   - k8s will start to create new replicas using the previous version
+#   - and simultaneously destroy the replicas with newer version.
+#   - It will use the same Rolling Update strategy to do so.
+#
+
+#
+# Summary:
+#
+# Create Deployment: 
+#   - kubectl create -f myapp-deployment.yml
+#
+# Get Deployment: 
+#   - kubectl get deployments
+#   - kubectl get deployment myapp-deployment
+#   - kubectl decsribe deployment myapp-deployment
+#
+# Update Deployment: 
+#   - kubectl apply -f myapp-deployment.yml
+#   - kubectl set image deployment/myapp-deployment nginx=nginx:1.7.1
+#
+# Status of Deployment: 
+#   - kubectl rollout status deployment/myapp-deployment
+#   - kubectl rollout history deployment/myapp-deployment
+#
+# Rollback of Deployment: 
+#   - kubectl rollout undo deployment/myapp-deployment
+#
