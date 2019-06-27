@@ -74,15 +74,20 @@ spec:
       restartPolicy: Never
 
 #
-# Completions indicate the numbr of times the pods need to be created.
+# Completions indicate the number of times the pods need to be completed successfully.
 # A new job pod is created only when the previous one finishes.
 # If any pods fail for whatever reasons, k8s will keep attempting new pods till it gets the desired number of completions.
+# But there is a max failed limit after which k8s will stop trying. Override that using backoffLimit
 # If we need parallelism, we can add the property:
 #   ...
-#   completions: 5
-#   parallelism: 2
+#   completions: 8 (indicates number of pods that need to retun 0 as exit code before giving up on recreations)
+#   parallelism: 3 (indicates number of pods to be created in parallel)
+#   backoffLimit: 25 (indicates number of pods that can have non-0 exit code before giving up)
 #   ...
-# Here, 2 pods will be scheduled first, then another 2, then 1.
+# Assuming, some containers radomly return a non-zero code:
+#   - k8s will keep spinning until it has 8 pods returning a 0 code
+#   - pods will be created in parallel (3 at a time)
+#   - if we get super unlucky and hit 25 failed pods before reaching 8 completions, then the job will be terminated
 #
 # kubectl create -f 04-pod-design/04-jobs.yml 
 #       job.batch/math-job created
