@@ -27,3 +27,9 @@ Covers the following topics:
     - Liveness Probes
     - Logging
     - Monitoring
+
+##### POD Design:
+    - Labels, Selectors & Annotations
+    - Rolling Updates & Rollbacks
+    - Jobs
+    - Cron Jobs
