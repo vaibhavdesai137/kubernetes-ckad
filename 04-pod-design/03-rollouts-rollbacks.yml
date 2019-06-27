@@ -77,7 +77,7 @@
 #
 # Update Deployment: 
 #   - kubectl apply -f myapp-deployment.yml
-#   - kubectl set image deployment/myapp-deployment nginx=nginx:1.7.1
+#   - kubectl set image deployment/myapp-deployment nginx-container=nginx:1.7.1
 #
 # Status of Deployment: 
 #   - kubectl rollout status deployment/myapp-deployment

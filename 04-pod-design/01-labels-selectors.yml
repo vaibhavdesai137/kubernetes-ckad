@@ -14,7 +14,7 @@
 # In order to filter these pods, we need selectors.
 # For example, we can say, class = mammals which gives us all pods that have the label "class" with a value of "mammals"
 # Multiple selectors can be applied together as well.
-# For example, class = mammal & color = red.
+# For example, kubectl get pod --selector class=mammal,color=red
 #
 
 #
