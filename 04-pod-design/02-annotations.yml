@@ -1,0 +1,21 @@
+
+#
+# Labels and selectors are used to group and filter objects.
+# Annotations are simply used to attach some information to the objects.
+# They are not used in any discovery process and are simply representing some metadata.
+#
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: loginapp-pod
+  labels:
+    type: frontend
+    app: loginapp
+  annotations:
+    gitSha: foobar
+    version: 1.3.3
+spec:
+  containers:
+    - name: foobar-container
+      image: foobar
