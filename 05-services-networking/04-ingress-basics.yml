@@ -1,0 +1,94 @@
+
+#
+# A typical full stack app has several components (frontend, backend, db, etc.)
+# For each component, there will be a number of pods for scaling.
+# The frontend pods need to talk to backend pods.
+# The backend pods need to talk to db pods.
+# So how do we connect these components?
+# All pods have their own IP but they can can when pods get recreated or deleted.
+# Plus it would be a nightmare for the client to keep track of IP addresses for their downstream components.
+# Even if we were to use IPs, how do we achieve scaling?
+# For eg: if 10 pods were running backend pods, which pod should the frontend connect to?
+# If frontend uses a static ip to connect to backend then all remaining 9 backend pods are useless.
+# The ClusterIP service solves this problem.
+# It groups the similar pods (using selectors) and creates an interface for the clients to talk to this group.
+# It will also randomly distribute the traffic to one of the pods in the group automaticaly.
+#
+# Frontend pod will not be a dependency on any pods in our stack.
+# It needs to be accessed by external users and ClusterIP cannot achieve that.
+# We can create a NodePort service for frontend pod and then the clients can use that.
+# But like discussed above, we don't want users typing/maintaining IP addresses and ports.
+# So we can then create a DNS entry to point one of the nodes to some DNS name.
+# The users will still need to enter the port though. Because nodePort has a range of 30000-23767.
+# So to overcome this, we can now add another proxy server on port 80 that forwards request to our NodePort on 30080 for example.
+# You can then point the DNS to this proxy server so users simply need to access https://mywebsite.com
+# Even with all this, we still have the scaling issue because the DNS can simply point to one node ip.
+# If our front end is running on many pods, other pods would be useless.
+#
+
+#
+# The above is all good for on-prim.
+# If we were on GCP, instead of creating a service of type NodePort, we can create a service of type LoadBalancer.
+# k8s in this case will do everything that it does for NodePort but in addition:
+#   - k8s sends a request to GCP to create a network LB
+#   - GCP will then automatically configure the LB to route traffic to service ports on all nodes grouped by the service
+#   - This LB also has an external IP that users can use
+#   - But the best would be to create a DNS that points to this LB which in turn routes traffic to the nodes
+#   
+# The app can then be accessed simply by http://mywebsite.com
+#
+# Now imagine we are launching a new service for our site called "shop"
+# We need this to be reachable at http://mywebsite.com/shop
+# And we still need the previous default one to go to: http://mywebsite.com/home
+# To do this, we create a new service of type LoadBalancer called "shop-service".
+# As a result, GCP will now create another network LB and do all the work for NodePorts to route traffic to our shop pods.
+# So this is what we have so far:
+#
+# GCP LB 1 ---> home-service ---> frontend pods on port 30080
+# GCP LB 2 ---> shop-service ---> shop pods on port 30082
+# Now the DNS was pointing to the 1st service at http://mywebsite.com
+# How do we get the users to http://mywebsite.com/shop ?
+#
+# So we now need another load balancer that can sit at the top of our network, inspect the url, and then route accordingly.
+# We can configure the DNS to point to top-level LB IP.
+# The top level LB will inspect the url and proxy the request to one of the other 2 load balancers.
+# We would also need to support SSL for our site, configure firewalls, etc.
+# Everytime we introduce another URL pattern, we need to update our top level LB for routing to work.
+#
+# ALL THESE IS JUST TOO MUCH CIRCUS. NEED A BETTER WAY TO DO IT.
+#
+# Everything can be moved on the k8s cluster using ingress.
+# Ingress helps users access the apps using a single externally accessible URL that can be configured
+# to point to different services in the cluster based on the url path.
+# Ingress implements SSL as well.
+# Think of ingress as a L7 load balancer built in to the k8s cluster.
+#
+# Now ingress itself is a k8s object so we need to expose it out to the users.
+#   - Either using a NodePort or the GCP LB.
+#   - But its just a one time setup since all routing rules are now within the ingress object in k8s
+#
+
+#
+# Without ingress, to achieve the same, we would have to do the following:
+#   - Create conf files for custom url path routing
+#   - Configure SSL certificates in conf file
+#   - Create pods for nginx and use the conf files that were created above (haproxy, etc.)
+#
+# k8s also implements ingress the same way as above.
+# k8s lets us choose the routing solution (eg: nginx, etc.)
+# Ingress slang for routing solution is "Ingress Controller"
+# So basically we get to select our Ingress Controller and define its rules.
+# These rules are known as "Ingress Resources"
+# Ingress resources can be created using definition files like other k8s objects.
+# 
+
+#
+# Ingress Controller:
+#   - Not deployed by default in 8s cluster
+#   - Lots of options to choose from (nginx, haproxy, gce, istio, etc.)
+#   - gce and gninx are currently maintained by the k8s community
+#   - More than simply running nginx pods (has lot more intelligence)
+#   - eg: monitor k8s cluster for new resources, update when ingress resources are changed, etc.
+#   - We'll use nginx as our ingress controller
+#   - And it will be just another Deployment
+#

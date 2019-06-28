@@ -1,0 +1,94 @@
+
+#
+# Ingress Controller:
+#   - Not deployed by default in 8s cluster
+#   - Lots of options to choose from (nginx, haproxy, gce, istio, etc.)
+#   - gce and gninx are currently maintained by the k8s community
+#   - More than simply running nginx pods (has lot more intelligence)
+#   - eg: monitor k8s cluster for new resources, update when ingress resources are changed, etc.
+#   - We'll use nginx as our ingress controller
+#   - And it will be just another Deployment
+#
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata: 
+  name: nginx-ingress-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: nginx-ingress
+  template:
+    metadata:
+      labels:
+        name: nginx-ingress
+    spec:
+      containers:
+        # special build of nginx built to be used as ingress controller
+        - name: nginx-ingress-controller-container
+          image: quay.io/kubernetes-ingress-controller/nginx-ingress-controller:0.21.0
+      args:
+        # this is where the binary resides in the image
+        - /nginx-ingress-controller
+        # instead of harcoding rules here, we can use config maps
+        - --configmap=$(POD_NAMESPACE)/nginx-configuration
+      env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+      ports:
+        - name: http
+          containerPort: 80
+        - name: https
+          containerPort: 443
+
+#
+# Create the ConfigMap, it can be empty to begin with, nginx will use defaults
+#
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-configuration
+
+#
+# Once the deployment is created, we also need a Service to expose this Deployment.
+#
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-ingress-service
+spec:
+  type: NodePort
+  ports:
+    - targetPort: 80
+      port: 80
+      name: http
+      protocol: TCP
+    - targetPort: 443
+      port: 443
+      name: https
+      protocol: TCP
+  selector:
+    name: nginx-ingress
+
+#
+# Because ingress controller is smart and can monitor k8s cluster for changes, ingress resource changes, it needs permissions to do do.
+# So we need to create a service account with correct Roles, ClusterRoles and RoleBindings.
+#
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nginx-ingress-serviceaccount
+
+#
+# Now, we need Ingress Resources (rules) to configure routing, url paths, etc.
+#

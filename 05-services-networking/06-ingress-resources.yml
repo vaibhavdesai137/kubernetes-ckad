@@ -1,0 +1,73 @@
+
+#
+# Now that our ingress controller is good to go, we need Ingress Resources (rules) to configure routing, url paths, etc.
+#
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata: 
+  name: ingress-homepage
+spec:
+  backend: 
+    serviceName: homepage-service
+    servicePort: 80
+
+#
+# We need rules when we route traffic based on different conditions.
+#
+# For eg: we can have one rule for traffic originating from each domain
+#   - www.mywebsite.com ---> rule 1
+#   - www.shop.mywebsite.com ---> rule 2
+#   - www.pay.mywebsite.com ---> rule 3
+#   - everything else ---> rule 4
+#
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata: 
+  name: ingress-website
+spec:
+  rules:
+    - host: mywebsite.com
+      http:
+        paths:
+          backend: 
+            serviceName: homepage-service
+            servicePort: 80
+    - host: shop.mywebsite.com
+      http:
+        paths:
+          backend: 
+            serviceName: shop-service
+            servicePort: 80
+    - host: pay.mywebsite.com
+      http:
+        paths:
+          backend: 
+            serviceName: pay-service
+            servicePort: 80
+
+#
+#
+# Within each rule, we can have different paths
+#   - www.shop.mywebsite.com/clothes ---> clothes service
+#   - www.shop.mywebsite.com/shoes ---> shoes service
+#   - and so on...
+#
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata: 
+  name: ingress-shop
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /clothes
+            backend: 
+              serviceName: clothes-service
+              servicePort: 80
+          - path: /shoes
+            backend: 
+              serviceName: shoes-service
+              servicePort: 80

@@ -99,5 +99,7 @@ spec:
 #
 # Frontend pod will not be a dependency on any pods in our stack.
 # It needs to be accessed by external users and ClusterIP cannot achieve that.
+# We can create a NodePort service for frontend pod and then the clients can use that.
+# But like discussed above, we don't want users typing/maintaining IP addresses and ports.
 # We'll look at ingress for that.
 #
