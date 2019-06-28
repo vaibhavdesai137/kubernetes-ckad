@@ -1,0 +1,88 @@
+
+#
+# Consider a typical full stack app with WEB, API and DB layer.
+#   - Users hit the WEB layer on port 80.
+#   - WEB layer talks to API layer on port 5000.
+#   - API layer talks to DB layer on port 3306.
+#
+# In the above scenario:
+#   - For WEB: port 80 is the ingress port, port 5000 is the egress port
+#   - For API: port 5000 is the ingress port, port 3306 is the egress port
+#   - For DB: port 3306 is the ingress port, no egress port since DB does not talk to any other layer
+#
+
+# 
+# In k8s world, each node, service, pod, etc. has its own IP.
+# Every pod should be able to talk to each other (via IP or name) without any extra routing rules.
+# These pods could either be on same nodes or multiple nodes.
+# To accomplish this, k8s uses "All Allow" rule for any pod/service to talk to each other in same cluster.
+#
+
+#
+# Going back to the full stack app example:
+# Because all pods are in the same cluster, the WEB layer will be able to hit the DB layer directly.
+# We do not want that. All accesses to DB should be coming from API layer only.
+# This is where network policies are useful.
+# Network Policy is another object like pod, service, etc. in k8s.
+# These network policies can then be linked to any object (in our case the DB layer).
+# i.e. we need a NetworkPolicy that allows inbound traffic on port 3306 only from API pod.
+# NetworkPolicy will be linked to pod using the same "selector" fields.
+#
+
+#
+# API pod
+#
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: api-pod
+  labels:
+    role: api
+spec:
+  containers:
+    - name: myapp-container
+      image: myapp
+
+#
+# DB pod
+#
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: db-pod
+  labels:
+    role: db
+spec:
+  containers:
+    - name: mysql-container
+      image: mysql
+
+#
+# NetworkPolicy
+#
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: 
+  name: db-policy
+spec:
+  podSelector:
+    matchLabels:
+      role: db
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              role: api
+        ports:
+          - protocol: TCP
+            port: 3306
+
+#
+# Not all networking solutions available for k8s support NetworkPolicy.
+# The policy can still be created, they just won't be enforced.
+#
