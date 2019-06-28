@@ -1,0 +1,62 @@
+
+#
+# NodePort:
+#   - This type of service listens on a port and forwards the request to a pod inside the node on the same/different port.
+#   - This allows direct access to a pod on the k8s cluster from outside.
+#   - A service connects to its pod via the "selector" labels.
+#   - If more than 1 pod matches the labels, then all those pods are considered as endpoints
+#   - and the Service will automatically distribute traffic to the pods.
+#   - By default, the Service will randomly distribute traffic to the pods.
+#   - Even if the pods are distributed across multiple nodes, the Service automatically spans across those nodes.
+#   - For eg: if 3 nodes with IPs 192.168.1.4/5/6 are running pods, then all 3 are accessible using the same Service object.
+#       - curl http://192.168.1.4:30080
+#       - curl http://192.168.1.5:30080
+#       - curl http://192.168.1.6:30080 
+#
+# When pods are added/updated, the service automatically picks up the changes for routing.
+#
+# Summary:
+#   Whether there is:
+#     - One pod on one node
+#     - Multiple pods on one node
+#     - Multiple pods on multiple nodes
+#   the service works exactly the same without any additional configurations.
+#
+# BUT WE STILL NEED TO ACCESS EACH POD INDIVIDUALLY BECAUSE NODEPORT DOES NOT CREATE ANY VIPs AUTOMATICALLY.
+#   
+# 3 ports in questions:
+#   - targetPort: the port where the app is actually listening on in the container.
+#   - port: the outbound port on the Service itself that will be used to connect to the targetPort on the container.
+#   - nodePort: the port clients will use to connect to the Service. (valid range: 30000-32767)
+#
+
+#
+# Pod
+#
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+  labels:
+    pod: nginx
+spec:
+  containers:
+    - name: nginx-container
+      image: nginx
+
+#
+# Service
+#
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-nodeport-service
+spec:
+  type: NodePort
+  ports:
+    - targetPort: 80
+      port: 80
+      nodePort: 30080
+  # selectors tell the Service to connect to the pod
+  selector:
+    pod: nginx

@@ -1,0 +1,33 @@
+
+#
+# Services enables communication between k8s objects (inside and outside of cluster).
+# They help apps connect to each other by providing networking services.
+# For example: we may have 2 sets of pods, frontend and backend.
+# Services can help connect users to frontend apps and also the frontend apps to connect to backend pods.
+#
+# In a local mac setup, we'll have minikube running which acts as a k8s master/node.
+# This node has its own IP. Pods created within minikube have their own IPs in the 10.*.*.* range.
+# One way to connect to pod would be to SSH into the node and then access the pod endpoint.
+# This is do-able because k8s manages the pod within the node.
+#
+# But how do we connect to a running pod from the Mac browser since the pod is on a different network?
+# To do this, we'll need someone to proxy our request from our Mac to the pod running on the node.
+# This is exactly what Services let us do.
+# 
+# A k8s Service is an object just like pods, deployments, replica sets, etc.
+#
+# NodePort:
+#   - This type of service listens on a port and forwards the request to a pod inside the node on the same/different port.
+#   - This allows direct access to a pod on the k8s cluster from outside.
+#
+# ClusterIP:
+#   - This type of service creates a VIP for a group of pods so that other objects can reach this group.
+#   - This is great because the k8s objects can directly refer to this group via the VIP without worrying about indiviual running pods on that group.
+#   - This service WILL NOT expose the pods to the outside world.
+#   - Useful for internal communication only.
+#   - For ex: backend pods connecting to DB pods via the ClusterIP created by DB pods.
+#
+# LoadBalancer:
+#   - This type of service creates an actual LB in supported clouds.
+#   - It helps to distribute loads across pods within a deploymnet group.
+#
