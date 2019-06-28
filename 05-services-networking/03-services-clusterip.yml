@@ -7,3 +7,97 @@
 #   - Useful for internal communication only.
 #   - For ex: backend pods connecting to DB pods via the ClusterIP created by DB pods.
 #
+
+#
+# A typical full stack app has several components (frontend, backend, db, etc.)
+# For each component, there will be a number of pods for scaling.
+# The frontend pods need to talk to backend pods.
+# The backend pods need to talk to db pods.
+# So how do we connect these components?
+# All pods have their own IP but they can can when pods get recreated or deleted.
+# Plus it would be a nightmare for the client to keep track of IP addresses for their downstream components.
+# Even if we were to use IPs, how do we achieve scaling?
+# For eg: if 10 pods were running backend pods, which pod should the frontend connect to?
+# If frontend uses a static ip to connect to backend then all remaining 9 backend pods are useless.
+# The ClusterIP service solves this problem.
+# It groups the similar pods (using selectors) and creates an interface for the clients to talk to this group.
+# It will also randomly distribute the traffic to one of the pods in the group automaticaly.
+#
+
+#
+# Redis Pod
+#
+apiVersion: v1
+kind: Pod
+metadata:
+  name: redis-pod
+  labels:
+    pod: redis
+spec:
+  containers:
+    - name: redis-container
+      image: redis
+
+#
+# Redis Service
+#
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-clusterip-service
+spec:
+  type: ClusterIp
+  ports:
+    - targetPort: 6379
+      port: 6379
+  selector:
+    pod: redis
+
+#
+# Backend Pod
+#
+apiVersion: v1
+kind: Pod
+metadata:
+  name: backend-pod
+  labels:
+    pod: backend
+spec:
+  containers:
+    - name: backend-container
+      image: backend
+
+#
+# Backend Service
+#
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-clusterip-service
+spec:
+  type: ClusterIp
+  ports:
+    - targetPort: 8080
+      port: 8080
+  selector:
+    pod: backend
+
+#
+# Frontend Pod
+#
+apiVersion: v1
+kind: Pod
+metadata:
+  name: frontend-pod
+  labels:
+    pod: frontend
+spec:
+  containers:
+    - name: frontend-container
+      image: frontend
+
+#
+# Frontend pod will not be a dependency on any pods in our stack.
+# It needs to be accessed by external users and ClusterIP cannot achieve that.
+# We'll look at ingress for that.
+#
