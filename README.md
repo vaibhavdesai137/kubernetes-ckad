@@ -34,3 +34,13 @@ Covers the following topics:
     - Rolling Updates & Rollbacks
     - Jobs
     - Cron Jobs
+
+##### Services & Networking:
+    - Services basics
+    - Services: NodePort
+    - Services: ClusterIP
+    - Ingress basics
+    - Ingress Controller
+    - Ingress Resources
+    - NetworkPolicy
+    

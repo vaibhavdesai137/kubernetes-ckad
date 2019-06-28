@@ -86,3 +86,38 @@ spec:
 # Not all networking solutions available for k8s support NetworkPolicy.
 # The policy can still be created, they just won't be enforced.
 #
+
+#
+# Another example of a NetworkPolicy
+# Allowing outbound traffic from "internal" pod only on port 3306 for "mysql" and 8080 for "payroll"
+# 
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: internal-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      name: internal
+  policyTypes:
+  - Egress
+  - Ingress
+  ingress:
+    - {}
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          name: mysql
+    ports:
+    - protocol: TCP
+      port: 3306
+  - to:
+    - podSelector:
+        matchLabels:
+          name: payroll
+    ports:
+    - protocol: TCP
+      port: 8080
