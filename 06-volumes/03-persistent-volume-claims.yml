@@ -1,0 +1,68 @@
+
+#
+# PersistentVolume & PersistentVolumeClaim are 2 separate objects in k8s.
+# A PersistentVolume is a cluster wide pool of stoarge volume configured by an admin.
+# The pods can then request for this storage using PersistentVolumeClaim (PVC).
+# Once the PVCs are created, k8s binds the PV to PVC based on requiremnts and availability.
+# k8s will try to bind a PVC to PV that has:
+#     - sufficient capacity as requested by PVC
+#     - satisfies the properties of PVC (access modes, volume modes, storage class, etc.)
+# If multiple PVs satisfy a PVC, k8s can choose any one or you can influence the bind using labels and selectors.
+#
+# Every PVC is bound to a single PV and that PVC is the only one on that PV. No other PVC can use that PV.
+# So be careful else we may end up wasting storage.
+# If no PV can be found for a PVC, that PVC will be in a Pending state.
+# If new PV gets created later that satifies the PVC, the PVC will automatically get bound to that PV.
+# 
+
+#
+# PersistentVolume (created ahead of time)
+#
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-volume1
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 1Gi
+  hostPath: 
+    path: /data
+
+#
+# PersistentVolumeClaim
+#
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: my-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
+  persistentVolumeReclaimPolicy: Delete
+
+#
+# Since our PVC only wants 500 MB and theReadWriteOnce access, k8s sees that such a PV is available that can be used.
+# So it binds our PVC to the available PV.
+#
+# kubectl get persistentvolumes
+#     NAME                CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM            STORAGECLASS   REASON   AGE
+#     pv-volume1          1Gi        RWO            Retain           Available                                            32s
+#
+# kubectl get persistentvolumeclaims
+#     NAME     STATUS   VOLUME       CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+#     my-pvc   Bound    pv-volume1   500Mi      RWO            standard       16s
+#
+# When a PVC is deleted, the PV is retained by default. This PV can no longer be bound to any other PVC.
+# We can override the default behavior with:
+# persistentVolumeReclaimPolicy is exactly doing that. The PV will be deleted automatically when PVC is deleted.
+#     - Retain: Default, the PV will stay as is and no other PVC can use it.
+#     - Delete: The PV is deleted when the PVC is deleted.
+#     - Recycle: The data from the PV is deleted when PVC is deleted. The PV can then be used by other PVC.
+#

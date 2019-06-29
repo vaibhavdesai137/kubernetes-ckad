@@ -1,0 +1,41 @@
+
+#
+# In the previous example, we created the volume with the pod definition and mounted it there itself.
+# Once the number of users and k8s pods grow, managing the volumes in pod definition may become a nightmare.
+# We want to manage the storage more centrally.
+# The pods should then be able to simply use the available storage rather than configuring volumes.
+# So, we can create large pool of storage & pods can carve out whatever they need.
+# This is where PersistentVolumes can be helpful.
+#
+# A PersistentVolume is a cluster wide pool of stoarge volume configured by an admin.
+# The pods can then request for this storage using PersistentVolumeClaims.
+#
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-volume1
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 1Gi
+  hostPath: 
+    path: /data
+
+#
+# Just like prev example, the hostPath can be replaced with any 3rd party storage.
+#
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-volume1
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 1Gi
+  awsElasticBlockStore: 
+    volumeID: <volume-id>
+    fsType: ext4  

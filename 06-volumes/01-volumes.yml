@@ -1,0 +1,46 @@
+
+#
+# Containers are transient in nature. They come and they go and the data is lost everytime the container is destroyed.
+# To persist data, we need volumes.
+# That way, the data is persisted even if the container dies.
+# Just like docker, pods in k8s are transient in nature & need volumes to persist data.
+#
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: math-pod
+spec:
+  containers:
+    - name: math-container
+      image: alpine
+      command: ["/bin/sh", "-c"]
+      args: ["shuf -i 0-100 -n 1 >> /opt/number.txt;"]
+      volumeMounts:
+        - mountPath: /opt
+          name: myvolume
+  volumes:
+    - name: myvolume
+      hostPath: 
+        path: /data
+        type: Directory
+
+#
+# k8s looks at "volumes" and creates a new directory called /data on host and calls it myvolume.
+# /opt gets mounted on myvolume which is in turn pointing to /data.
+# So basically, /opt = myvolume = /data.
+# So the file number.txt will then show up in /data/number.txt and is persisted.
+# This works fine on a single node. 
+# In local, if we had multiple nodes, all nodes would write to the same /data location on host and the file would be overwritten.
+# In prod, if we had multiple nodes, the nodes may be running on different servers and not all of them would have the /data directory created.
+# To solve this, we can use storage solutions provided by the industry. (AWS, GCE, NGS, ClusterFS, etc.).
+#
+
+# For AWS, we can have the following:
+...
+volumes:
+    - name: myvolume
+      awsElasticBlockStore: 
+        volumeID: <volume-id>
+        fsType: ext4  
+...
