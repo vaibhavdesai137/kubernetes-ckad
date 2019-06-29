@@ -30,6 +30,7 @@ spec:
     storage: 1Gi
   hostPath: 
     path: /data
+  persistentVolumeReclaimPolicy: Delete
 
 #
 # PersistentVolumeClaim
@@ -45,7 +46,6 @@ spec:
   resources:
     requests:
       storage: 500Mi
-  persistentVolumeReclaimPolicy: Delete
 
 #
 # Since our PVC only wants 500 MB and theReadWriteOnce access, k8s sees that such a PV is available that can be used.
@@ -57,12 +57,41 @@ spec:
 #
 # kubectl get persistentvolumeclaims
 #     NAME     STATUS   VOLUME       CAPACITY   ACCESS MODES   STORAGECLASS   AGE
-#     my-pvc   Bound    pv-volume1   500Mi      RWO            standard       16s
+#     my-pvc   Bound    pv-volume1   1Gi        RWO            standard       16s
 #
 # When a PVC is deleted, the PV is retained by default. This PV can no longer be bound to any other PVC.
-# We can override the default behavior with:
-# persistentVolumeReclaimPolicy is exactly doing that. The PV will be deleted automatically when PVC is deleted.
+# We can override the default behavior with persistentVolumeReclaimPolicy when defining PV.
+#
+# 3 possible values:
 #     - Retain: Default, the PV will stay as is and no other PVC can use it.
 #     - Delete: The PV is deleted when the PVC is deleted.
 #     - Recycle: The data from the PV is deleted when PVC is deleted. The PV can then be used by other PVC.
+#
+# Even though our PVC requested only 500Mi, we got the whole 1Gi since thats what the PV had and PV can't be shared with other PVC anyway.
+#
+
+#
+# Once PVC is bound to a PV, the pods can use that PVC as:
+#
+apiVersion: v1
+kind: Pod
+metadata:
+  name: math-pod
+spec:
+  containers:
+    - name: math-container
+      image: alpine
+      command: ["/bin/sh", "-c"]
+      args: ["shuf -i 0-100 -n 1 >> /opt/number.txt;"]
+      volumeMounts:
+        - mountPath: /opt
+          name: myvolume
+  volumes:
+    - name: myvolume
+      persistentVolumeClaim:
+        claimName: my-pvc
+
+#
+# If you delete the PVC now, it will be stuck in Terminating state since the pod is using it.
+# Delete the pod first if you want the PVC to be deleted.
 #
