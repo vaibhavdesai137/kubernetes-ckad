@@ -6,14 +6,14 @@ Covers the following topics:
 
 ##### Core:
     - Pods
-    - ReplicationControllers
-    - ReplicaSets
+    - Replication Controllers
+    - Replica Sets
     - Deployments
     - Services
 
 ##### Configurations:
     - Environment Variables
-    - ConfigMaps
+    - Config Maps
     - Secrets
     - Security Contexts
     - Service Accounts
@@ -44,3 +44,7 @@ Covers the following topics:
     - Ingress Resources
     - NetworkPolicy
     
+##### Volumes:
+    - Volumes
+    - Persistent Volumes
+    - Persistent Volume Claims
