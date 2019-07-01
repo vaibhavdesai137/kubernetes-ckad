@@ -1,0 +1,10 @@
+
+kubectl create -f yaml/01-mysql-pv.yml
+kubectl create -f yaml/02-mysql-pvc.yml
+kubectl create -f yaml/03-wordpress-pv.yml
+kubectl create -f yaml/04-wordpress-pvc.yml
+Create the secret using the kubectl cmd in 05-secret.yml
+kubectl create -f yaml/06-mysql-deployment.yml
+kubectl create -f yaml/07-wordpress-deployment.yml
+kubectl create -f yaml/08-mysql-clusterip-svc.yml
+kubectl create -f yaml/09-wordpress-nodeport-svc.yml
