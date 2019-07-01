@@ -1,0 +1,63 @@
+
+Setup a cluster with the following (refer to the architecture diagram question.png)
+
+#################
+##### MySQL #####
+#################
+
+Persistent Volume: 
+    Volume Name: mysql-persistent-storage
+    Storage: 1Gi
+    Access modes: ReadWriteMany
+    NFS Path: /mysql
+
+Persistent Volume Claim: 
+    Claim Name: mysql-persistent-storage
+    Storage Request: 1Gi
+    Access modes: ReadWriteMany
+
+Secret:
+    Secret Name: mysql-pass
+    Secret: password=admin
+
+Deployment:
+    Name: mysql
+    Replicas: 1
+    Image: mysql:5.7
+    ENV: MYSQL_ROOT_PASSWORD=secret: mysql-pass
+    Volume Mount: mysql-persistent-storage
+    Volume Mount Path: /var/lib/mysql
+
+Service:
+    Name: wordpress-mysql
+    Type: ClusterIP
+    Port: 3306
+
+#####################
+##### WORDPRESS #####
+#####################
+
+Persistent Volume: 
+    Volume Name: wordpress-persistent-storage
+    Storage: 1Gi
+    Access modes: ReadWriteMany
+    NFS Path: /html
+
+Persistent Volume Claim: 
+    Claim Name: wordpress-persistent-storage
+    Storage Request: 1Gi
+    Access modes: ReadWriteMany
+
+Deployment:
+    Name: wordpress
+    Replicas: 2
+    Image: wordpress
+    Volume Mount: wordpress-persistent-storage
+    Volume Mount Path: /var/www/html
+    ENV: WORDPRESS_DB_PASSWORD=secret:mysql-pass
+
+Service:
+    Name: wordpress
+    Type: NodePort
+    Port: 80
+    Port: 31004
